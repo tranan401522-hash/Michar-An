@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Michar An - Nền tảng Video & Audio Độc quyền</title>
+    <!-- Google Fonts: DM Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body { 
+            background-color: #f8f9fa; 
+            color: #1a1a1a; 
+            font-family: 'DM Sans', sans-serif; 
+        }
+        .header-glass { 
+            background: rgba(255, 255, 255, 0.8); 
+            backdrop-filter: blur(12px); 
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05); 
+        }
+        .youtube-red { background-color: #ff0000; color: white; }
+        .admin-blue { background-color: #0066ff; color: white; }
+        .card-shadow { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); }
+        .btn-transition { transition: all 0.2s ease; }
+        .btn-transition:active { transform: scale(0.95); }
+        
+        audio {
+            width: 100%;
+            height: 40px;
+            outline: none;
+        }
+        .cat-thumbnail {
+            background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%);
+        }
+        /* Loading spinner */
+        .spinner {
+            animation: rotate 2s linear infinite;
+            width: 20px;
+            height: 20px;
+        }
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <nav class="sticky top-0 z-50 header-glass p-4 flex justify-between items-center px-8">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+            <i class="fab fa-youtube text-red-600 text-3xl"></i>
+            <span class="text-2xl font-bold tracking-tight">Michar An</span>
+        </div>
+        
+        <div class="flex gap-4 items-center" id="nav-actions">
+            <div id="role-badge" class="hidden px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"></div>
+            <button onclick="window.toggleUploadModal()" id="admin-upload-btn" class="hidden admin-blue px-5 py-2 rounded-full font-medium btn-transition hover:shadow-lg">
+                <i class="fas fa-cloud-upload-alt mr-2"></i>Tải nội dung
+            </button>
+            <span id="user-display" class="hidden text-sm font-medium text-gray-600"></span>
+            <button onclick="window.handleLogout()" id="logout-btn" class="hidden text-gray-400 hover:text-red-600 transition">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="container mx-auto p-6 md:p-10">
+        
+        <!-- Welcome View (Bảng đăng nhập ban đầu) -->
+        <section id="welcome-view" class="text-center py-24 max-w-2xl mx-auto">
+            <h1 class="text-6xl font-black mb-6 text-gray-900 leading-tight">Âm thanh độc quyền,<br>Cảm xúc trọn vẹn.</h1>
+            <p class="text-lg text-gray-500 mb-10">Vui lòng đăng nhập để truy cập thư viện nội dung của Michar An.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-8 bg-white rounded-3xl card-shadow border border-gray-100 flex flex-col items-center">
+                    <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-4">
+                        <i class="fas fa-user-friends text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">Thành viên</h3>
+                    <p class="text-sm text-gray-400 mb-6 text-center">Nghe audio và tải bằng chứng đăng ký.</p>
+                    <button onclick="window.openRegisterModal('member')" class="w-full youtube-red py-3 rounded-xl font-bold btn-transition">Đăng nhập ngay</button>
+                </div>
+
+                <div class="p-8 bg-white rounded-3xl card-shadow border border-gray-100 flex flex-col items-center">
+                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+                        <i class="fas fa-user-shield text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">Quản trị</h3>
+                    <p class="text-sm text-gray-400 mb-6 text-center">Truy cập bằng email quản trị hệ thống.</p>
+                    <button onclick="window.openRegisterModal('admin')" class="w-full admin-blue py-3 rounded-xl font-bold btn-transition">Đăng nhập Quản trị</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Content Library (Sau khi đăng nhập) -->
+        <section id="video-view" class="hidden">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <p class="text-red-600 font-bold text-sm uppercase tracking-widest mb-1">Thư viện của bạn</p>
+                    <h2 class="text-4xl font-black text-gray-900">Danh sách Audio</h2>
+                </div>
+                <div class="text-gray-400 text-sm italic" id="video-count">0 nội dung</div>
+            </div>
+            
+            <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Video/Audio sẽ hiện ở đây -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: Register/Login -->
+    <div id="register-modal" class="fixed inset-0 bg-white/80 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-10 rounded-[40px] shadow-2xl border border-gray-100 relative">
+            <button onclick="window.closeModals()" class="absolute top-6 right-6 text-gray-400 hover:text-black"><i class="fas fa-times"></i></button>
+            <div class="text-center mb-8">
+                <div id="modal-icon-container" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4"></div>
+                <h2 id="modal-title" class="text-3xl font-bold">Xác minh danh tính</h2>
+                <p id="modal-subtitle" class="text-gray-400 mt-2">Vui lòng nhập thông tin để tiếp tục</p>
+            </div>
+            
+            <div class="space-y-5">
+                <div>
+                    <label id="email-label" class="block text-xs font-bold text-gray-400 uppercase mb-2">Email tài khoản</label>
+                    <input type="email" id="reg-email" placeholder="email@example.com" class="w-full bg-gray-50 border-0 p-4 rounded-2xl focus:ring-2 transition">
+                </div>
+                <div id="proof-container">
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Ảnh chụp bằng chứng</label>
+                    <div class="relative group">
+                        <input type="file" id="reg-proof" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <div class="bg-gray-50 border-2 border-dashed border-gray-200 p-8 rounded-2xl text-center group-hover:border-red-400 transition">
+                            <i class="fas fa-image text-gray-300 text-3xl mb-2"></i>
+                            <p class="text-xs text-gray-400">Tải ảnh bằng chứng đăng ký</p>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="window.handleRegister()" id="submit-btn" class="w-full py-4 rounded-2xl font-bold text-white shadow-lg btn-transition">Vào trang chủ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Upload -->
+    <div id="upload-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl p-10 rounded-[40px] shadow-2xl relative text-black">
+            <button onclick="window.closeModals()" class="absolute top-6 right-6 text-gray-400 hover:text-black"><i class="fas fa-times"></i></button>
+            <h2 class="text-3xl font-black mb-8 flex items-center gap-3">
+                <i class="fas fa-music text-blue-600"></i> Tải lên Audio mới
+            </h2>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Tiêu đề bản ghi</label>
+                    <input type="text" id="video-title" placeholder="Tiêu đề hiển thị..." class="w-full bg-gray-50 p-4 rounded-2xl border-0 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Chọn file từ máy tính</label>
+                    <input type="file" id="video-file" accept="audio/*,video/*" class="w-full p-4 bg-gray-50 rounded-2xl border-0">
+                </div>
+                <button onclick="window.handleUpload()" id="upload-confirm" class="w-full admin-blue py-4 rounded-2xl font-bold shadow-xl btn-transition">Xác nhận tải lên</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CẤU HÌNH HỆ THỐNG (KHÔNG CẦN FIREBASE ĐỂ CHẠY LOCAL) ---
+        const ADMIN_EMAIL = "antran.quantri@micharan.music.edu";
+        let localVideos = []; // Lưu trữ tạm thời trong phiên làm việc
+        let currentUserRole = null;
+        let registrationRole = 'member';
+
+        // --- SVG Con mèo nằm ngủ ---
+        const CAT_SVG = `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 opacity-80"><path fill="#FFB3B3" d="M140,150 C140,165 110,175 70,175 C30,175 0,165 0,150 C0,135 30,125 70,125 C110,125 140,135 140,150 Z" opacity="0.1"/><path fill="#4A4A4A" d="M160,150 C160,165 130,175 90,175 C50,175 20,165 20,150 C20,135 50,110 90,110 C130,110 160,135 160,150 Z"/><path fill="#4A4A4A" d="M60,120 L40,90 L80,105 Z M120,120 L140,90 L100,105 Z"/><circle cx="90" cy="140" r="45" fill="#4A4A4A"/><path d="M75,145 Q80,150 85,145 M95,145 Q100,150 105,145" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M88,155 Q90,158 92,155" stroke="#FF8080" stroke-width="2" fill="none"/><text x="130" y="100" font-family="Arial" font-size="20" fill="#FF8080" font-weight="bold">Z</text><text x="145" y="80" font-family="Arial" font-size="15" fill="#FF8080" font-weight="bold">z</text></svg>`;
+
+        // Khởi tạo trang
+        window.onload = () => {
+            const savedUser = localStorage.getItem('michar_user');
+            if (savedUser) {
+                const userData = JSON.parse(savedUser);
+                currentUserRole = userData.role;
+                showDashboard(userData.role, userData.email);
+            }
+        };
+
+        window.openRegisterModal = (role) => {
+            registrationRole = role;
+            const modal = document.getElementById('register-modal');
+            const proofBox = document.getElementById('proof-container');
+            const title = document.getElementById('modal-title');
+            const btn = document.getElementById('submit-btn');
+            const iconBox = document.getElementById('modal-icon-container');
+
+            if (role === 'admin') {
+                title.textContent = "Đăng nhập Quản trị";
+                proofBox.classList.add('hidden');
+                btn.className = "w-full py-4 rounded-2xl font-bold text-white shadow-lg btn-transition admin-blue";
+                iconBox.innerHTML = '<i class="fas fa-shield-alt text-blue-600 text-2xl"></i>';
+                iconBox.className = "w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 bg-blue-50";
+            } else {
+                title.textContent = "Xác minh Thành viên";
+                proofBox.classList.remove('hidden');
+                btn.className = "w-full py-4 rounded-2xl font-bold text-white shadow-lg btn-transition youtube-red";
+                iconBox.innerHTML = '<i class="fas fa-heart text-red-600 text-2xl"></i>';
+                iconBox.className = "w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 bg-red-50";
+            }
+            modal.classList.remove('hidden');
+        };
+
+        window.closeModals = () => {
+            document.querySelectorAll('[id$="-modal"]').forEach(m => m.classList.add('hidden'));
+        };
+
+        window.handleRegister = () => {
+            const email = document.getElementById('reg-email').value.trim();
+            const proof = document.getElementById('reg-proof').files[0];
+
+            if (registrationRole === 'admin') {
+                if (email !== ADMIN_EMAIL) {
+                    alert("Email Quản trị không chính xác!");
+                    return;
+                }
+            } else {
+                if (!email || !proof) {
+                    alert("Vui lòng nhập email và tải ảnh bằng chứng!");
+                    return;
+                }
+            }
+
+            const userData = { email, role: registrationRole };
+            localStorage.setItem('michar_user', JSON.stringify(userData));
+            currentUserRole = registrationRole;
+            showDashboard(registrationRole, email);
+            window.closeModals();
+        };
+
+        window.handleLogout = () => {
+            localStorage.removeItem('michar_user');
+            location.reload();
+        };
+
+        const showDashboard = (role, email) => {
+            document.getElementById('welcome-view').classList.add('hidden');
+            document.getElementById('video-view').classList.remove('hidden');
+            document.getElementById('logout-btn').classList.remove('hidden');
+            
+            const badge = document.getElementById('role-badge');
+            badge.classList.remove('hidden');
+            
+            const userDisplay = document.getElementById('user-display');
+            userDisplay.textContent = email;
+            userDisplay.classList.remove('hidden');
+
+            if (role === 'admin') {
+                badge.textContent = 'Quản trị';
+                badge.className = 'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest admin-blue';
+                document.getElementById('admin-upload-btn').classList.remove('hidden');
+            } else {
+                badge.textContent = 'Thành viên';
+                badge.className = 'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest youtube-red';
+            }
+            renderVideos();
+        };
+
+        window.toggleUploadModal = () => {
+            document.getElementById('upload-modal').classList.remove('hidden');
+        };
+
+        window.handleUpload = () => {
+            const title = document.getElementById('video-title').value;
+            const file = document.getElementById('video-file').files[0];
+
+            if (!title || !file) {
+                alert("Vui lòng nhập tiêu đề và chọn file!");
+                return;
+            }
+
+            const videoURL = URL.createObjectURL(file);
+            localVideos.unshift({
+                id: Date.now(),
+                title: title,
+                url: videoURL,
+                fileName: file.name,
+                date: new Date().toLocaleDateString('vi-VN')
+            });
+
+            renderVideos();
+            window.closeModals();
+            document.getElementById('video-title').value = "";
+            document.getElementById('video-file').value = "";
+        };
+
+        const renderVideos = () => {
+            const grid = document.getElementById('video-grid');
+            const count = document.getElementById('video-count');
+            grid.innerHTML = '';
+            count.textContent = `${localVideos.length} nội dung`;
+
+            localVideos.forEach(item => {
+                grid.innerHTML += `
+                    <div class="video-card bg-white rounded-3xl overflow-hidden card-shadow border border-gray-100 flex flex-col">
+                        <div class="aspect-square cat-thumbnail flex items-center justify-center relative">
+                            ${CAT_SVG}
+                            <div class="absolute bottom-4 right-4 bg-white/80 px-2 py-1 rounded text-[10px] font-bold">AUDIO</div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-lg text-gray-900 line-clamp-2 leading-snug mb-2">${item.title}</h4>
+                                <p class="text-[10px] text-gray-400 mb-4 italic truncate">File: ${item.fileName}</p>
+                            </div>
+                            <div class="mt-auto">
+                                <audio controls class="w-full">
+                                    <source src="${item.url}" type="audio/mpeg">
+                                </audio>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+    </script>
+</body>
+</html>
